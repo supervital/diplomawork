@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated with http://android-holo-colors.com -->
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <style name="SmartPic" parent="Theme.Sherlock.Light.DarkActionBar">
+        <item name="actionBarStyle">@style/ActionBarSmartpic</item>
+        <item name="android:editTextStyle">@style/EditTextSmartPic</item>
+        <item name="android:checkboxStyle">@style/CheckBoxSmartPic</item>
+        <item name="android:buttonStyle">@style/ButtonSmartPic</item>
+        <item name="android:imageButtonStyle">@style/ImageButtonSmartPic</item>
+        <item name="android:buttonStyleToggle">@style/ToggleSmartPic</item>
+    </style>
+
+</resources>
