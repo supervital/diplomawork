@@ -2,12 +2,12 @@ package com.android.smartpic.adapter;
 
 import java.util.ArrayList;
 
+import android.content.Context;
+import android.support.v4.content.AsyncTaskLoader;
+
+import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.android.smartpic.R;
 import com.android.smartpic.model.PicModel;
-
-import android.content.Context;
-import android.preference.PreferenceManager;
-import android.support.v4.content.AsyncTaskLoader;
 
 public class PicLoader extends AsyncTaskLoader<ArrayList<PicModel>> {
 
@@ -37,9 +37,9 @@ public class PicLoader extends AsyncTaskLoader<ArrayList<PicModel>> {
 		ArrayList<PicModel> list = new ArrayList<PicModel>();
 		String[] names = mContext.getResources().getStringArray(
 				R.array.device_name);
-		for (int i = 0; i < getNumberDevice(); i++) {
+		for (int i = 0; i < names.length; i++) {
 			PicModel model = new PicModel();
-			model.setName(getNameFromSharedPreferences(names[i]));
+			model.setName(getNameFromSharedPreferences(names[i] + names[i]));
 			model.setState(getStateFromSharedPreferences(names[i]));
 			list.add(model);
 		}
@@ -47,18 +47,13 @@ public class PicLoader extends AsyncTaskLoader<ArrayList<PicModel>> {
 	}
 
 	private boolean getStateFromSharedPreferences(String key) {
-		return PreferenceManager.getDefaultSharedPreferences(mContext)
-				.getBoolean(key, false);
+		return ((SherlockFragmentActivity) mContext).getPreferences(
+				Context.MODE_PRIVATE).getBoolean(key, false);
 	}
 
 	private String getNameFromSharedPreferences(String key) {
-		return PreferenceManager.getDefaultSharedPreferences(mContext)
-				.getString(key, DEFAULT_NAME);
-	}
-
-	private int getNumberDevice() {
-		return PreferenceManager.getDefaultSharedPreferences(mContext).getInt(
-				NUM_DEVICE, 0);
+		return ((SherlockFragmentActivity) mContext).getPreferences(
+				Context.MODE_PRIVATE).getString(key, DEFAULT_NAME);
 	}
 
 	@Override

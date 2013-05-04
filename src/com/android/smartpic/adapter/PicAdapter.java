@@ -7,7 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
+import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.TextView;
@@ -16,19 +16,21 @@ import android.widget.ToggleButton;
 import com.android.smartpic.R;
 import com.android.smartpic.model.PicModel;
 
-public class PicAdapter extends BaseAdapter {
+public class PicAdapter extends ArrayAdapter<PicModel> {
 
-	public interface onToggleButtonClick {
+	public interface ToggleButtonClick {
 		public void setDeviceState(int position, boolean state,
 				ToggleButton button);
 	}
 
-	private onToggleButtonClick mToggleButtonClick;
+	private ToggleButtonClick mToggleButtonClick;
 	private Context mContext;
 	private ArrayList<PicModel> mPicModel;
 
-	public PicAdapter(Context context) {
+	public PicAdapter(Context context, ArrayList<PicModel> objects) {
+		super(context, R.layout.list_item, objects);
 		mContext = context;
+		mPicModel = objects;
 	}
 
 	@Override
@@ -39,7 +41,7 @@ public class PicAdapter extends BaseAdapter {
 	}
 
 	@Override
-	public Object getItem(int position) {
+	public PicModel getItem(int position) {
 		if (mPicModel == null)
 			return null;
 		return mPicModel.get(position);
@@ -92,7 +94,7 @@ public class PicAdapter extends BaseAdapter {
 
 			@Override
 			public void onClick(View v) {
-				mToggleButtonClick = (onToggleButtonClick) mContext;
+				mToggleButtonClick = (ToggleButtonClick) mContext;
 				mToggleButtonClick.setDeviceState(position,
 						mPicModel.get(position).isState(), holder.itemButton);
 			}

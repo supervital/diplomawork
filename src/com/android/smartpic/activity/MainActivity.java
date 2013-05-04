@@ -1,6 +1,5 @@
 package com.android.smartpic.activity;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -9,55 +8,51 @@ import android.content.SharedPreferences.Editor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.Loader;
 import android.view.View;
-import android.widget.ListView;
-import android.widget.ProgressBar;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import com.actionbarsherlock.app.SherlockFragment;
 import com.actionbarsherlock.app.SherlockFragmentActivity;
+import com.actionbarsherlock.view.ActionMode;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 import com.android.smartpic.R;
 import com.android.smartpic.adapter.PicAdapter;
-import com.android.smartpic.adapter.PicLoader;
-import com.android.smartpic.adapter.PicAdapter.onToggleButtonClick;
-import com.android.smartpic.app.Constans;
+import com.android.smartpic.adapter.PicAdapter.ToggleButtonClick;
 import com.android.smartpic.client.SmartPICClient;
 import com.android.smartpic.client.SmartPICClient.ClientListener;
 import com.android.smartpic.fragment.AboutFragment;
+import com.android.smartpic.fragment.EditItemFragment;
+import com.android.smartpic.fragment.MainFragment;
+import com.android.smartpic.fragment.MainFragment.OnContextMenu;
 import com.android.smartpic.fragment.NoInternetConnectionDialog;
 import com.android.smartpic.model.PicModel;
 
 public class MainActivity extends SherlockFragmentActivity implements
-		onToggleButtonClick, LoaderManager.LoaderCallbacks<ArrayList<PicModel>> {
+		ToggleButtonClick, OnContextMenu {
 
-	private ListView mItemList;
+	public static final String ABOUT = "about";
+	public static final String NO_INTERNET_CONNECTION = "no_internet";
+	public static final String MAIN = "main";
+	public static final String EDIT = "edit";
+	public static final String URL = "http://10.0.2.2:8080/";
+	public static final String KEY_DEVICE = "device";
+	public static final String KEY_STATE = "state";
+
 	private Context mContext = this;
 	private String[] mNamesArray;
-	private ProgressBar mProgressDialog;
-	private PicAdapter mAdapter;
-
-	public static String NO_INTERNET_CONNECTION = "no_internet_connection";
-	public static String ABOUT = "about";
+	private SherlockFragment mContent;
+	private ActionMode mActionMode;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_main);
-
+		setContentView(R.layout.activity_container);
 		mNamesArray = getResources().getStringArray(R.array.device_name);
-		mAdapter = new PicAdapter(mContext);
-		mItemList = (ListView) findViewById(R.id.controllPanel);
-		mItemList.setEmptyView(findViewById(R.id.emptyTextView));
-		mItemList.addHeaderView(getLayoutInflater().inflate(
-				R.layout.list_header, null));
-		mItemList.setAdapter(mAdapter);
-		mProgressDialog = (ProgressBar) findViewById(R.id.progressBar);
-
-		checkInternetState();
+		if (savedInstanceState == null) {
+			loadContent();
+		}
 	}
 
 	@Override
@@ -73,10 +68,10 @@ public class MainActivity extends SherlockFragmentActivity implements
 		case R.id.action_about:
 			item.setVisible(false);
 			getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-			mItemList.setVisibility(View.INVISIBLE);
-			getSupportFragmentManager().beginTransaction()
-					.add(R.id.frgmCont, AboutFragment.newInstance(), ABOUT)
-					.addToBackStack(NO_INTERNET_CONNECTION).commit();
+			getSupportFragmentManager()
+					.beginTransaction()
+					.replace(R.id.container_frame, AboutFragment.newInstance(),
+							ABOUT).addToBackStack(ABOUT).commit();
 			return true;
 
 		case android.R.id.home:
@@ -94,10 +89,9 @@ public class MainActivity extends SherlockFragmentActivity implements
 		if (getSupportFragmentManager().findFragmentByTag(ABOUT) != null) {
 			showContent();
 			return;
-		} else if (getSupportFragmentManager().findFragmentByTag(
-				NO_INTERNET_CONNECTION) != null) {
-			finish();
-			return;
+		} else if (mActionMode != null
+				&& getSupportFragmentManager().findFragmentByTag(EDIT) != null) {
+			getSupportFragmentManager().popBackStack();
 		}
 		super.onBackPressed();
 	}
@@ -105,7 +99,8 @@ public class MainActivity extends SherlockFragmentActivity implements
 	@Override
 	public void setDeviceState(final int position, final boolean state,
 			final ToggleButton button) {
-		showLoadingIndicator(true);
+		((MainFragment) getSupportFragmentManager().findFragmentByTag(MAIN))
+				.showLoadingIndicator(true);
 
 		int picState;
 		if (state)
@@ -113,10 +108,10 @@ public class MainActivity extends SherlockFragmentActivity implements
 		picState = 0;
 
 		Map<String, Integer> params = new HashMap<String, Integer>();
-		params.put(Constans.KEY_DEVICE, position);
-		params.put(Constans.KEY_STATE, picState);
+		params.put(KEY_DEVICE, position);
+		params.put(KEY_STATE, picState);
 
-		SmartPICClient client = new SmartPICClient(Constans.URL, params);
+		SmartPICClient client = new SmartPICClient(URL, params);
 		client.setClientListener(new ClientListener() {
 
 			@Override
@@ -124,45 +119,26 @@ public class MainActivity extends SherlockFragmentActivity implements
 				Editor editor = getPreferences(MODE_PRIVATE).edit();
 				editor.putBoolean(mNamesArray[position], state);
 				editor.commit();
-				showLoadingIndicator(false);
+				((MainFragment) getSupportFragmentManager().findFragmentByTag(
+						MAIN)).showLoadingIndicator(false);
 			}
 
 			@Override
 			public void taskFailed() {
-				showLoadingIndicator(false);
 				button.setChecked(false);
 				Toast.makeText(mContext, getString(R.string.msg_server_fail),
 						Toast.LENGTH_SHORT).show();
+				((MainFragment) getSupportFragmentManager().findFragmentByTag(
+						MAIN)).showLoadingIndicator(false);
 			}
 		});
 		client.execute();
 	}
 
-	@Override
-	public Loader<ArrayList<PicModel>> onCreateLoader(int arg0, Bundle arg1) {
-		return new PicLoader(mContext);
-	}
-
-	@Override
-	public void onLoadFinished(Loader<ArrayList<PicModel>> loader,
-			ArrayList<PicModel> list) {
-		if (list.size() == 8)
-			mItemList.removeHeaderView(getLayoutInflater().inflate(
-					R.layout.list_header, null));
-		mAdapter.setModel(list);
-		showLoadingIndicator(false);
-	}
-
-	@Override
-	public void onLoaderReset(Loader<ArrayList<PicModel>> arg0) {
-		mAdapter.setModel(null);
-		showLoadingIndicator(false);
-	}
-
 	public void buttonClick(View v) {
 		switch (v.getId()) {
 		case R.id.retrieveButton:
-			checkInternetState();
+			loadContent();
 			break;
 
 		default:
@@ -170,37 +146,19 @@ public class MainActivity extends SherlockFragmentActivity implements
 		}
 	}
 
-	private void checkInternetState() {
+	private void loadContent() {
 		ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo netInfo = cm.getActiveNetworkInfo();
+		String tag;
 		if (netInfo != null && netInfo.isConnectedOrConnecting()) {
-			if (getSupportFragmentManager().findFragmentByTag(
-					NO_INTERNET_CONNECTION) != null)
-				getSupportFragmentManager().popBackStack();
-
-			showLoadingIndicator(true);
-			getSupportLoaderManager().initLoader(1, null, this);
-
+			mContent = MainFragment.newInstance();
+			tag = MAIN;
 		} else {
-			if (getSupportFragmentManager().findFragmentByTag(
-					NO_INTERNET_CONNECTION) == null)
-				getSupportFragmentManager()
-						.beginTransaction()
-						.add(R.id.frgmCont,
-								NoInternetConnectionDialog.newInstance(),
-								NO_INTERNET_CONNECTION)
-						.addToBackStack(NO_INTERNET_CONNECTION).commit();
+			mContent = NoInternetConnectionDialog.newInstance();
+			tag = NO_INTERNET_CONNECTION;
 		}
-	}
-
-	private void showLoadingIndicator(boolean contentLoaded) {
-		if (contentLoaded) {
-			mItemList.setVisibility(View.INVISIBLE);
-			mProgressDialog.setVisibility(View.VISIBLE);
-		} else {
-			mItemList.setVisibility(View.VISIBLE);
-			mProgressDialog.setVisibility(View.GONE);
-		}
+		getSupportFragmentManager().beginTransaction()
+				.replace(R.id.container_frame, mContent, tag).commit();
 	}
 
 	private void showContent() {
@@ -208,6 +166,76 @@ public class MainActivity extends SherlockFragmentActivity implements
 		getSupportActionBar().setHomeButtonEnabled(false);
 		getSupportFragmentManager().popBackStack();
 		invalidateOptionsMenu();
-		mItemList.setVisibility(View.VISIBLE);
+	}
+
+	@Override
+	public void item(int position, String defaultName, PicAdapter adapter,
+			PicModel model) {
+		if (mActionMode == null) {
+			mActionMode = startActionMode(new ContextMenu(defaultName,
+					mNamesArray[position], adapter, model));
+		} else {
+			mActionMode.finish();
+		}
+
+	}
+
+	private class ContextMenu implements ActionMode.Callback {
+
+		private String editAbleText;
+		private String key;
+		private PicAdapter adapter;
+		private PicModel model;
+
+		public ContextMenu(String editAbleText, String key, PicAdapter adapter,
+				PicModel model) {
+			super();
+			this.editAbleText = editAbleText;
+			this.key = key;
+			this.adapter = adapter;
+			this.model = model;
+		}
+
+		@Override
+		public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+			mode.getMenuInflater().inflate(R.menu.context_menu, menu);
+			mode.setTitle(editAbleText);
+			return true;
+		}
+
+		@Override
+		public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+			switch (item.getItemId()) {
+			case R.id.action_rename:
+				mode.setTitle("");
+				item.setVisible(false);
+				getSupportFragmentManager()
+						.beginTransaction()
+						.replace(
+								R.id.container_frame,
+								EditItemFragment.newInstance(editAbleText, key,
+										model), EDIT).addToBackStack(EDIT)
+						.commit();
+				break;
+			default:
+				break;
+			}
+			return true;
+		}
+
+		@Override
+		public void onDestroyActionMode(ActionMode mode) {
+			mActionMode = null;
+			if (getSupportFragmentManager().findFragmentByTag(EDIT) != null)
+				getSupportFragmentManager().popBackStack();
+			adapter.notifyDataSetChanged();
+		}
+
 	}
 }

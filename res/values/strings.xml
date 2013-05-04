@@ -14,26 +14,20 @@
     <string name="retrieve">Повтор</string>
     <string name="empty">Нет установленных устройств</string>
     <string name="about">Бла бла бла бла бла бла бла бла бла</string>
+    <string name="action_rename">Переименовать</string>
+    <string name="action_done">Готово</string>
 
     <string-array name="device_name">
-        <item>Иван</item>
-        <item>Марья</item>
-        <item>Петр</item>
-        <item>Антон</item>
-        <item>Даша</item>
-        <item>Борис</item>
-        <item>Костя</item>
-        <item>Игорь</item>
-        <item>Антон</item>
-        <item>Даша</item>
-        <item>Борис</item>
-        <item>Костя</item>
-        <item>Игорь</item>
-        <item>Анна</item>
-        <item>Денис</item>
-        <item>Вадим</item>
-        <item>Ольга</item>
-        <item>Сергей</item>
+        <item>one</item>
+        <item>two</item>
+        <item>three</item>
+        <item>four</item>
+        <item>five</item>
+        <item>six</item>
+        <item>seven</item>
+        <item>eight</item>
+        <item>nine</item>
+        <item>ten</item>
     </string-array>
 
 </resources>
