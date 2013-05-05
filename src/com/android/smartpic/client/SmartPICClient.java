@@ -1,13 +1,17 @@
 package com.android.smartpic.client;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
 
 import android.os.AsyncTask;
 
@@ -19,57 +23,27 @@ public class SmartPICClient extends AsyncTask<Void, Void, Boolean> {
 		void taskFailed();
 	}
 
+	public static final String DEVICE_ID = "device_id";
+	public static final String DEVICE_STATE = "device_state";
+	public static final String CLIENT_ID = "client_id";
+	public static final String CLIENT_SECRET = "android_app";
+
 	private ClientListener mClientListener;
 	private String mUrl;
-	private Map<String, Integer> mParams;
+	private String mDeviceId;
+	private String mDeviceState;
 
-	public SmartPICClient(String mUrl, Map<String, Integer> mParams) {
+	public SmartPICClient(String url, String deviceId, String deviceState) {
 		super();
-		this.mUrl = mUrl;
-		this.mParams = mParams;
+		mUrl = url;
+		mDeviceId = deviceId;
+		mDeviceState = deviceState;
 	}
 
 	@Override
 	protected Boolean doInBackground(Void... params) {
-		URL url = null;
-		try {
-			url = new URL(mUrl);
-		} catch (MalformedURLException e) {
-			throw new IllegalArgumentException("invalid url: " + mUrl);
-		}
-		StringBuilder bodyBuilder = new StringBuilder();
-		Iterator<Entry<String, Integer>> iterator = mParams.entrySet()
-				.iterator();
-		while (iterator.hasNext()) {
-			Entry<String, Integer> param = iterator.next();
-			bodyBuilder.append(param.getKey()).append('=')
-					.append(param.getValue());
-			if (iterator.hasNext()) {
-				bodyBuilder.append('&');
-			}
-		}
-		String body = bodyBuilder.toString();
-		byte[] bytes = body.getBytes();
-		HttpURLConnection conn = null;
-		try {
-			conn = (HttpURLConnection) url.openConnection();
-			conn.setDoOutput(true);
-			conn.setUseCaches(false);
-			conn.setFixedLengthStreamingMode(bytes.length);
-			conn.setRequestMethod("POST");
-			conn.setRequestProperty("Content-Type",
-					"application/x-www-form-urlencoded;charset=UTF-8");
-			OutputStream out = conn.getOutputStream();
-			out.write(bytes);
-			out.close();
-			int status = conn.getResponseCode();
-			if (status != 200) {
-				throw new IOException("Post failed with error code " + status);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
+		if (postData() != 200)
 			return false;
-		}
 		return true;
 	}
 
@@ -85,6 +59,33 @@ public class SmartPICClient extends AsyncTask<Void, Void, Boolean> {
 
 	public void setClientListener(ClientListener clientListener) {
 		mClientListener = clientListener;
+	}
+
+	private int postData() {
+		int statusCode = 0;
+		// Create a new HttpClient and Post Header
+		DefaultHttpClient httpClient = new DefaultHttpClient();
+		HttpParams httpParameters = new BasicHttpParams();
+		HttpConnectionParams.setConnectionTimeout(httpParameters, 30000);
+		httpClient.setParams(httpParameters);
+		HttpPost httppost = new HttpPost(mUrl);
+
+		try {
+			// Add parameters and headers
+			List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
+			nameValuePairs.add(new BasicNameValuePair(DEVICE_ID, mDeviceId));
+			nameValuePairs.add(new BasicNameValuePair(DEVICE_STATE,
+					mDeviceState));
+			httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+			httppost.addHeader(CLIENT_ID, CLIENT_SECRET);
+
+			// Execute HTTP Post Request
+			HttpResponse httpResponse = httpClient.execute(httppost);
+			statusCode = httpResponse.getStatusLine().getStatusCode();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return statusCode;
 	}
 
 }
