@@ -19,8 +19,8 @@ import com.android.smartpic.model.PicModel;
 public class PicAdapter extends ArrayAdapter<PicModel> {
 
 	public interface ToggleButtonClick {
-		public void setDeviceState(int position, boolean state,
-				ToggleButton button);
+		public void setDeviceState(int position, int value, boolean state,
+				ToggleButton button, ArrayList<PicModel> list);
 	}
 
 	private ToggleButtonClick mToggleButtonClick;
@@ -95,8 +95,9 @@ public class PicAdapter extends ArrayAdapter<PicModel> {
 			@Override
 			public void onClick(View v) {
 				mToggleButtonClick = (ToggleButtonClick) mContext;
-				mToggleButtonClick.setDeviceState(position,
-						mPicModel.get(position).isState(), holder.itemButton);
+				mToggleButtonClick.setDeviceState(position, mPicModel.get(position)
+						.getDeviceValue(), mPicModel.get(position).isState(),
+						holder.itemButton, mPicModel);
 			}
 		});
 		return convertView;

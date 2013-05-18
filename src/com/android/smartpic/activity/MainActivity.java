@@ -1,5 +1,7 @@
 package com.android.smartpic.activity;
 
+import java.util.ArrayList;
+
 import android.content.Context;
 import android.content.SharedPreferences.Editor;
 import android.net.ConnectivityManager;
@@ -33,7 +35,7 @@ public class MainActivity extends SherlockFragmentActivity implements
 	public static final String NO_INTERNET_CONNECTION = "no_internet";
 	public static final String MAIN = "main";
 	public static final String EDIT = "edit";
-	public static final String URL = "http://10.0.2.2:8080/";
+	public static final String URL = "http://192.168.0.3:8080/";
 
 	private Context mContext = this;
 	private String[] mNamesArray;
@@ -92,12 +94,12 @@ public class MainActivity extends SherlockFragmentActivity implements
 	}
 
 	@Override
-	public void setDeviceState(final int position, final boolean state,
-			final ToggleButton button) {
+	public void setDeviceState(final int position, final int value,
+			final boolean state, final ToggleButton button,
+			ArrayList<PicModel> list) {
 		blockUI(true);
 
-		SmartPICClient client = new SmartPICClient(URL,
-				Integer.toString(position), state(state));
+		SmartPICClient client = new SmartPICClient(URL, value, list);
 		client.setClientListener(new ClientListener() {
 
 			@Override
@@ -110,7 +112,7 @@ public class MainActivity extends SherlockFragmentActivity implements
 
 			@Override
 			public void taskFailed() {
-				button.setChecked(false);
+				button.setChecked(state);
 				Toast.makeText(mContext, getString(R.string.msg_server_fail),
 						Toast.LENGTH_LONG).show();
 				blockUI(false);
@@ -223,14 +225,6 @@ public class MainActivity extends SherlockFragmentActivity implements
 
 	}
 
-	private String state(boolean state) {
-		if (state) {
-			return "1";
-		} else {
-			return "0";
-		}
-	}
-
 	private void blockUI(boolean block) {
 		if ((MainFragment) getSupportFragmentManager().findFragmentByTag(MAIN) == null) {
 			return;
@@ -238,5 +232,4 @@ public class MainActivity extends SherlockFragmentActivity implements
 		((MainFragment) getSupportFragmentManager().findFragmentByTag(MAIN))
 				.showLoadingIndicator(block);
 	}
-
 }

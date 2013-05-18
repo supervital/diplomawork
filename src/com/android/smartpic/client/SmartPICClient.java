@@ -13,6 +13,8 @@ import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 
+import com.android.smartpic.model.PicModel;
+
 import android.os.AsyncTask;
 
 public class SmartPICClient extends AsyncTask<Void, Void, Boolean> {
@@ -23,26 +25,33 @@ public class SmartPICClient extends AsyncTask<Void, Void, Boolean> {
 		void taskFailed();
 	}
 
-	public static final String DEVICE_ID = "device_id";
-	public static final String DEVICE_STATE = "device_state";
-	public static final String CLIENT_ID = "client_id";
-	public static final String CLIENT_SECRET = "android_app";
+	/* Secret headers */
+	public static final String CLIENT_ID = "client_id"; // Key
+	public static final String CLIENT_SECRET = "android_app"; // Value
+
+	/* Command headers */
+	public static final String DEVICE_COMMAND = "device_command"; // Key
+	public static final String READ_FORM_COM_PORT = "read_from"; // Value
+	public static final String WRITE_TO_COM_PORT = "write_to"; // Value
+
+	/* State headers */
+	public static final String DEVICE_STATE = "device_state"; // Key
 
 	private ClientListener mClientListener;
 	private String mUrl;
-	private String mDeviceId;
-	private String mDeviceState;
+	private int mDeviceValue;
+	private ArrayList<PicModel> mList;
 
-	public SmartPICClient(String url, String deviceId, String deviceState) {
+	public SmartPICClient(String url, int deviceValue, ArrayList<PicModel> list) {
 		super();
 		mUrl = url;
-		mDeviceId = deviceId;
-		mDeviceState = deviceState;
+		mDeviceValue = deviceValue;
+		mList = list;
 	}
 
 	@Override
 	protected Boolean doInBackground(Void... params) {
-		if (postData() != 200)
+		if (postData(getNumber(mDeviceValue)) != 200)
 			return false;
 		return true;
 	}
@@ -61,21 +70,22 @@ public class SmartPICClient extends AsyncTask<Void, Void, Boolean> {
 		mClientListener = clientListener;
 	}
 
-	private int postData() {
+	private int postData(int comPortValue) {
 		int statusCode = 0;
 		// Create a new HttpClient and Post Header
 		DefaultHttpClient httpClient = new DefaultHttpClient();
 		HttpParams httpParameters = new BasicHttpParams();
-		HttpConnectionParams.setConnectionTimeout(httpParameters, 30000);
+		HttpConnectionParams.setConnectionTimeout(httpParameters, 15000);
 		httpClient.setParams(httpParameters);
 		HttpPost httppost = new HttpPost(mUrl);
 
 		try {
 			// Add parameters and headers
 			List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
-			nameValuePairs.add(new BasicNameValuePair(DEVICE_ID, mDeviceId));
-			nameValuePairs.add(new BasicNameValuePair(DEVICE_STATE,
-					mDeviceState));
+			nameValuePairs.add(new BasicNameValuePair(DEVICE_COMMAND,
+					WRITE_TO_COM_PORT));
+			nameValuePairs.add(new BasicNameValuePair(DEVICE_STATE, Integer
+					.toString(comPortValue)));
 			httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 			httppost.addHeader(CLIENT_ID, CLIENT_SECRET);
 
@@ -86,6 +96,16 @@ public class SmartPICClient extends AsyncTask<Void, Void, Boolean> {
 			e.printStackTrace();
 		}
 		return statusCode;
+	}
+
+	private int getNumber(int value) {
+		int outputNumber = 0;
+		for (PicModel model : mList) {
+			if (model.isState()) {
+				outputNumber = outputNumber + model.getDeviceValue();
+			}
+		}
+		return outputNumber;
 	}
 
 }

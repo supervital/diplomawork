@@ -13,6 +13,7 @@ public class PicLoader extends AsyncTaskLoader<ArrayList<PicModel>> {
 
 	public static final String DEFAULT_NAME = "Default device";
 	public static final String NUM_DEVICE = "num_dev";
+	public static final int[] deviseValues = { 1, 2, 4, 8, 16, 32, 64, 128 };
 
 	private Context mContext;
 	private ArrayList<PicModel> list;
@@ -41,6 +42,7 @@ public class PicLoader extends AsyncTaskLoader<ArrayList<PicModel>> {
 			PicModel model = new PicModel();
 			model.setName(getNameFromSharedPreferences(names[i] + names[i]));
 			model.setState(getStateFromSharedPreferences(names[i]));
+			model.setDeviceValue(deviseValues[i]);
 			list.add(model);
 		}
 		return list;

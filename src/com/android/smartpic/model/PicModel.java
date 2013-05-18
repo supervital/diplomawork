@@ -7,6 +7,7 @@ public class PicModel implements Parcelable {
 
 	private String name;
 	private boolean state;
+	private int deviceValue;
 
 	public PicModel() {
 	}
@@ -14,6 +15,7 @@ public class PicModel implements Parcelable {
 	public PicModel(Parcel source) {
 		name = source.readString();
 		state = source.readByte() == 1;
+		deviceValue = source.readInt();
 	}
 
 	public String getName() {
@@ -32,6 +34,14 @@ public class PicModel implements Parcelable {
 		this.state = state;
 	}
 
+	public int getDeviceValue() {
+		return deviceValue;
+	}
+
+	public void setDeviceValue(int deviceValue) {
+		this.deviceValue = deviceValue;
+	}
+
 	@Override
 	public int describeContents() {
 		// TODO Auto-generated method stub
@@ -42,6 +52,7 @@ public class PicModel implements Parcelable {
 	public void writeToParcel(Parcel dest, int flags) {
 		dest.writeString(name);
 		dest.writeByte((byte) (state ? 1 : 0));
+		dest.writeInt(deviceValue);
 	}
 
 	public class MyCreator implements Parcelable.Creator<PicModel> {
