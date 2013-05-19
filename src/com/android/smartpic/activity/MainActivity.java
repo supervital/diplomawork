@@ -35,7 +35,6 @@ public class MainActivity extends SherlockFragmentActivity implements
 	public static final String NO_INTERNET_CONNECTION = "no_internet";
 	public static final String MAIN = "main";
 	public static final String EDIT = "edit";
-	public static final String URL = "http://192.168.0.3:8080/";
 
 	private Context mContext = this;
 	private String[] mNamesArray;
@@ -99,7 +98,8 @@ public class MainActivity extends SherlockFragmentActivity implements
 			ArrayList<PicModel> list) {
 		blockUI(true);
 
-		SmartPICClient client = new SmartPICClient(URL, value, list);
+		SmartPICClient client = new SmartPICClient(
+				SmartPICClient.WRITE_TO_COM_PORT, value, list);
 		client.setClientListener(new ClientListener() {
 
 			@Override
@@ -112,7 +112,7 @@ public class MainActivity extends SherlockFragmentActivity implements
 
 			@Override
 			public void taskFailed() {
-				button.setChecked(state);
+				button.setChecked(!state);
 				Toast.makeText(mContext, getString(R.string.msg_server_fail),
 						Toast.LENGTH_LONG).show();
 				blockUI(false);

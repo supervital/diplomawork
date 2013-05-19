@@ -12,11 +12,14 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockFragment;
 import com.android.smartpic.R;
 import com.android.smartpic.adapter.PicAdapter;
 import com.android.smartpic.adapter.PicLoader;
+import com.android.smartpic.client.SmartPICClient;
+import com.android.smartpic.client.SmartPICClient.ClientListener;
 import com.android.smartpic.model.PicModel;
 
 public class MainFragment extends SherlockFragment implements
@@ -78,7 +81,7 @@ public class MainFragment extends SherlockFragment implements
 			ArrayList<PicModel> list) {
 		mList = list;
 		mAdapter.setModel(list);
-		showLoadingIndicator(false);
+		loadStateFromDevice(list);
 	}
 
 	@Override
@@ -95,6 +98,28 @@ public class MainFragment extends SherlockFragment implements
 			mItemList.setVisibility(View.VISIBLE);
 			mProgressDialog.setVisibility(View.GONE);
 		}
+	}
+
+	private void loadStateFromDevice(ArrayList<PicModel> list) {
+		SmartPICClient client = new SmartPICClient(
+				SmartPICClient.READ_FORM_COM_PORT, 0, list);
+		client.setClientListener(new ClientListener() {
+
+			@Override
+			public void taskSuccessful() {
+				mAdapter.notifyDataSetChanged();
+				showLoadingIndicator(false);
+			}
+
+			@Override
+			public void taskFailed() {
+				showLoadingIndicator(false);
+				Toast.makeText(getActivity(),
+						getString(R.string.msg_server_fail), Toast.LENGTH_LONG)
+						.show();
+			}
+		});
+		client.execute();
 	}
 
 }
