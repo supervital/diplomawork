@@ -2,30 +2,15 @@
 <resources>
 
     <string name="app_name">SmartPIC</string>
-    <string name="action_settings">Settings</string>
-    <string name="hello_world">Hello world!</string>
     <string name="action_about">О программе</string>
-    <string name="add_device">Добавить устройство</string>
-    <string name="input_name">Введите имя устройства:</string>
     <string name="on">Вкл.</string>
     <string name="off">Выкл.</string>
-    <string name="msg_server_fail">Сервер недоступен</string>
+    <string name="msg_server_fail">Сервер не доступен</string>
     <string name="no_internet">Подключение отсутствует</string>
     <string name="retrieve">Повтор</string>
-    <string name="empty">Нет установленных устройств</string>
-    <string name="about">Бла бла бла бла бла бла бла бла бла</string>
+    <string name="about">\n Дипломный проект \n Ищука Виталия</string>
     <string name="action_rename">Переименовать</string>
     <string name="action_done">Готово</string>
-
-    <string-array name="device_name">
-        <item>one</item>
-        <item>two</item>
-        <item>three</item>
-        <item>four</item>
-        <item>five</item>
-        <item>six</item>
-        <item>seven</item>
-        <item>eight</item>
-    </string-array>
+    <string name="device">Устройство №</string>
 
 </resources>

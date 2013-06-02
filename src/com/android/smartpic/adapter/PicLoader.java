@@ -11,7 +11,6 @@ import com.android.smartpic.model.PicModel;
 
 public class PicLoader extends AsyncTaskLoader<ArrayList<PicModel>> {
 
-	public static final String DEFAULT_NAME = "Default device";
 	public static final String NUM_DEVICE = "num_dev";
 	public static final int[] deviseValues = { 1, 2, 4, 8, 16, 32, 64, 128 };
 
@@ -40,8 +39,8 @@ public class PicLoader extends AsyncTaskLoader<ArrayList<PicModel>> {
 				R.array.device_name);
 		for (int i = 0; i < names.length; i++) {
 			PicModel model = new PicModel();
-			model.setName(getNameFromSharedPreferences(names[i] + names[i]));
-			model.setState(getStateFromSharedPreferences(names[i]));
+			model.setName(getNameFromSharedPreferences(names[i]));
+			model.setState(getStateFromSharedPreferences(names[i] + names[i]));
 			model.setDeviceValue(deviseValues[i]);
 			list.add(model);
 		}
@@ -55,7 +54,8 @@ public class PicLoader extends AsyncTaskLoader<ArrayList<PicModel>> {
 
 	private String getNameFromSharedPreferences(String key) {
 		return ((SherlockFragmentActivity) mContext).getPreferences(
-				Context.MODE_PRIVATE).getString(key, DEFAULT_NAME);
+				Context.MODE_PRIVATE).getString(key,
+				mContext.getResources().getString(R.string.device) + key);
 	}
 
 	@Override

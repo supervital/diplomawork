@@ -55,7 +55,7 @@ public class EditItemFragment extends SherlockFragment {
 			mModel.setName(newName);
 			Editor edit = getActivity().getPreferences(Context.MODE_PRIVATE)
 					.edit();
-			edit.putString(mKey + mKey, newName);
+			edit.putString(mKey, newName);
 			edit.commit();
 		}
 		InputMethodManager imm = (InputMethodManager) getActivity()

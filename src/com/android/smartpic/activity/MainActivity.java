@@ -105,7 +105,7 @@ public class MainActivity extends SherlockFragmentActivity implements
 			@Override
 			public void taskSuccessful() {
 				Editor editor = getPreferences(MODE_PRIVATE).edit();
-				editor.putBoolean(mNamesArray[position], state);
+				editor.putBoolean(mNamesArray[position] + mNamesArray[position], state);
 				editor.commit();
 				blockUI(false);
 			}
